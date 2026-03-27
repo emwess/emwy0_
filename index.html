@@ -3,131 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Pro</title>
+<title>Yeni Nesil App</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial;
-    transition: 0.3s;
-}
+body { margin:0; font-family:Arial; background:#f4f6f9; }
 
-/* DARK MODE */
-body.dark {
-    background: #111;
-    color: white;
-}
-
-.dark .box,
-.dark .card,
-.dark #profileMenu {
-    background: #1e1e1e;
-    color: white;
-}
-
-/* LOGIN */
 #loginPage {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  display:flex; justify-content:center; align-items:center;
+  height:100vh;
 }
 
 .box {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 300px;
-    text-align: center;
+  background:#fff; padding:20px; border-radius:10px;
+  width:300px; text-align:center;
 }
 
 input, textarea {
-    width: 90%;
-    padding: 8px;
-    margin: 5px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+  width:90%; padding:8px; margin:5px;
 }
 
-/* TOPBAR */
 #topBar {
-    display: none;
-    justify-content: space-between;
-    background: #2563eb;
-    color: white;
-    padding: 10px;
+  display:none;
+  background:#1e3a8a;
+  color:#fff;
+  padding:10px;
+  justify-content:space-between;
 }
 
-/* BUTTON */
-button {
-    padding: 6px 10px;
-    border: none;
-    border-radius: 6px;
-    background: #1d4ed8;
-    color: white;
-    cursor: pointer;
+.menu button {
+  margin-left:5px;
 }
 
-button:hover {
-    opacity: 0.8;
-}
-
-/* SECTIONS */
 .section {
-    display: none;
-    padding: 20px;
+  display:none;
+  padding:20px;
 }
 
-.active {
-    display: block;
-}
-
-/* CARD */
-.card {
-    background: white;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 8px;
-}
-
-/* PROFILE */
-#profileMenu {
-    display: none;
-    position: absolute;
-    right: 10px;
-    top: 50px;
-    background: white;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-/* DASHBOARD */
-.dashboard {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.stat {
-    background: #2563eb;
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    flex: 1;
-    min-width: 120px;
-}
-
-/* TOAST */
-#toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: black;
-    color: white;
-    padding: 10px;
-    border-radius: 6px;
-    display: none;
-}
+.active { display:block; }
 </style>
 </head>
 
@@ -135,194 +52,156 @@ button:hover {
 
 <!-- LOGIN -->
 <div id="loginPage">
-    <div class="box">
-        <h2>Giriş</h2>
-        <input id="ad" placeholder="Ad">
-        <input id="soyad" placeholder="Soyad">
-        <input id="email" placeholder="Email">
-        <input id="sifre" type="password" placeholder="Şifre">
-        <button onclick="giris()">Giriş</button>
-    </div>
+  <div class="box">
+    <h2>Giriş</h2>
+    <input id="email" placeholder="Email">
+    <input id="sifre" type="password" placeholder="Şifre">
+    <button onclick="giris()">Giriş</button>
+    <button onclick="kayit()">Kayıt Ol</button>
+  </div>
 </div>
 
 <!-- TOP BAR -->
 <div id="topBar">
-    <div>📘 App Pro</div>
-    <div>
-        <button onclick="show('dashboard')">Dashboard</button>
-        <button onclick="show('kitap')">Kitap</button>
-        <button onclick="show('gunluk')">Günlük</button>
-        <button onclick="toggleDark()">🌙</button>
-        <button onclick="toggleProfile()">👤</button>
-        <button onclick="cikis()">Çıkış</button>
-    </div>
-</div>
-
-<!-- PROFILE -->
-<div id="profileMenu">
-    <p id="profilBilgi"></p>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="section">
-    <h2>Dashboard</h2>
-    <div class="dashboard">
-        <div class="stat">Kitap: <span id="kitapCount">0</span></div>
-        <div class="stat">Günlük: <span id="gunlukCount">0</span></div>
-    </div>
+  <div>📘 App</div>
+  <div class="menu">
+    <button onclick="show('kitap')">Kitap</button>
+    <button onclick="show('gunluk')">Günlük</button>
+    <button onclick="cikis()">Çıkış</button>
+  </div>
 </div>
 
 <!-- KITAP -->
 <div id="kitap" class="section">
-    <h2>Kitap</h2>
-    <input id="searchKitap" placeholder="Ara..." onkeyup="kitapGoster()">
-    <input id="kitapInput" placeholder="Kitap adı">
-    <button onclick="kitapEkle()">Ekle</button>
-    <div id="kitapListesi"></div>
+  <h2>Kitaplar</h2>
+  <input id="kitapInput" placeholder="Kitap adı">
+  <button onclick="kitapEkle()">Ekle</button>
+  <div id="kitapListesi"></div>
 </div>
 
 <!-- GÜNLÜK -->
 <div id="gunluk" class="section">
-    <h2>Günlük</h2>
-    <input id="searchGunluk" placeholder="Ara..." onkeyup="gunlukGoster()">
-    <textarea id="gunlukInput"></textarea>
-    <button onclick="gunlukEkle()">Ekle</button>
-    <div id="gunlukListesi"></div>
+  <h2>Günlük</h2>
+  <textarea id="gunlukInput"></textarea>
+  <button onclick="gunlukEkle()">Ekle</button>
+  <div id="gunlukListesi"></div>
 </div>
 
-<div id="toast"></div>
-
 <script>
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyDwTZvXVh4KBViFp_6ELfkNViaaKz-8Umg",
+  authDomain: "emwess-1c215.firebaseapp.com",
+  projectId: "emwess-1c215",
+  storageBucket: "emwess-1c215.firebasestorage.app",
+  messagingSenderId: "1085028708013",
+  appId: "1:1085028708013:web:246bed97c26ce49b072024"
+};
 
-let user = {};
+firebase.initializeApp(firebaseConfig);
 
-// TOAST
-function showToast(msg){
-    toast.innerText = msg;
-    toast.style.display = "block";
-    setTimeout(()=> toast.style.display="none",2000);
-}
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-// LOGIN
+let currentUser = null;
+
+/* LOGIN */
 function giris(){
-    user = {
-        ad: ad.value,
-        soyad: soyad.value,
-        email: email.value
-    };
-
-    localStorage.setItem("user", JSON.stringify(user));
-
-    loginPage.style.display = "none";
-    topBar.style.display = "flex";
-
-    profilGuncelle();
-    show("dashboard");
-    updateDashboard();
+  auth.signInWithEmailAndPassword(email.value, sifre.value)
+  .then(user=>{
+    currentUser = user.user;
+    loginPage.style.display="none";
+    topBar.style.display="flex";
+    show("kitap");
+    loadData();
+  })
+  .catch(e=>alert(e.message));
 }
 
-// PROFILE
-function profilGuncelle(){
-    profilBilgi.innerText = user.ad + " " + user.soyad;
+function kayit(){
+  auth.createUserWithEmailAndPassword(email.value, sifre.value)
+  .then(()=>alert("Kayıt başarılı"))
+  .catch(e=>alert(e.message));
 }
 
-function toggleProfile(){
-    profileMenu.style.display =
-        profileMenu.style.display === "block" ? "none" : "block";
-}
+/* AUTH STATE */
+auth.onAuthStateChanged(user=>{
+  if(user){
+    currentUser = user;
+    loginPage.style.display="none";
+    topBar.style.display="flex";
+    show("kitap");
+    loadData();
+  }
+});
 
-// DARK MODE
-function toggleDark(){
-    document.body.classList.toggle("dark");
-    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark":"light");
-}
-
-// PAGE
+/* SAYFA GEÇİŞ */
 function show(id){
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-// KITAP
+/* KİTAP */
 function kitapEkle(){
-    let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
-    list.push(kitapInput.value);
-    localStorage.setItem("kitaplar", JSON.stringify(list));
-    kitapInput.value = "";
-    kitapGoster();
-    updateDashboard();
-    showToast("Kitap eklendi");
+  db.collection("users")
+  .doc(currentUser.uid)
+  .collection("kitaplar")
+  .add({
+    text: kitapInput.value,
+    createdAt: new Date()
+  });
+  kitapInput.value="";
 }
 
 function kitapGoster(){
-    let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
-    let search = searchKitap.value.toLowerCase();
-
-    kitapListesi.innerHTML = "";
-    list
-    .filter(k=>k.toLowerCase().includes(search))
-    .forEach((k,i)=>{
-        kitapListesi.innerHTML += `<div class="card">${k}</div>`;
+  db.collection("users")
+  .doc(currentUser.uid)
+  .collection("kitaplar")
+  .orderBy("createdAt","desc")
+  .onSnapshot(snap=>{
+    kitapListesi.innerHTML="";
+    snap.forEach(doc=>{
+      kitapListesi.innerHTML += `<p>${doc.data().text}</p>`;
     });
+  });
 }
 
-// GÜNLÜK
+/* GÜNLÜK */
 function gunlukEkle(){
-    let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
-    list.push(gunlukInput.value);
-    localStorage.setItem("gunluklar", JSON.stringify(list));
-    gunlukInput.value = "";
-    gunlukGoster();
-    updateDashboard();
-    showToast("Günlük eklendi");
+  db.collection("users")
+  .doc(currentUser.uid)
+  .collection("gunlukler")
+  .add({
+    text: gunlukInput.value,
+    createdAt: new Date()
+  });
+  gunlukInput.value="";
 }
 
 function gunlukGoster(){
-    let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
-    let search = searchGunluk.value.toLowerCase();
-
-    gunlukListesi.innerHTML = "";
-    list
-    .filter(g=>g.toLowerCase().includes(search))
-    .forEach(g=>{
-        gunlukListesi.innerHTML += `<div class="card">${g}</div>`;
+  db.collection("users")
+  .doc(currentUser.uid)
+  .collection("gunlukler")
+  .orderBy("createdAt","desc")
+  .onSnapshot(snap=>{
+    gunlukListesi.innerHTML="";
+    snap.forEach(doc=>{
+      gunlukListesi.innerHTML += `<p>${doc.data().text}</p>`;
     });
+  });
 }
 
-// DASHBOARD
-function updateDashboard(){
-    let kitaplar = JSON.parse(localStorage.getItem("kitaplar")) || [];
-    let gunluklar = JSON.parse(localStorage.getItem("gunluklar")) || [];
-
-    kitapCount.innerText = kitaplar.length;
-    gunlukCount.innerText = gunluklar.length;
+/* LOAD */
+function loadData(){
+  kitapGoster();
+  gunlukGoster();
 }
 
-// LOAD
-window.onload = function(){
-
-    // theme
-    let theme = localStorage.getItem("theme");
-    if(theme==="dark") document.body.classList.add("dark");
-
-    let u = localStorage.getItem("user");
-    if(u){
-        user = JSON.parse(u);
-        loginPage.style.display = "none";
-        topBar.style.display = "flex";
-        profilGuncelle();
-        show("dashboard");
-        updateDashboard();
-        kitapGoster();
-        gunlukGoster();
-    }
-}
-
+/* ÇIKIŞ */
 function cikis(){
-    localStorage.clear();
-    location.reload();
+  auth.signOut();
+  location.reload();
 }
-
 </script>
 
 </body>
