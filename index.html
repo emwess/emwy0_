@@ -1,10 +1,41 @@
 <!DOCTYPE html>
 <html lang="tr">
-<head>
+<head> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
 <title>Yeni Nesil Uygulama</title>
 
 <style>
+    body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  width: 90%;
+  max-width: 1000px;
+  margin: auto;
+}
+
+button {
+  max-width: 100%;
+}
+
+/* Mobil uyum */
+@media (max-width: 768px) {
+  button {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  input, textarea {
+    width: 100%;
+  }
+
+  .navbar {
+    flex-direction: column;
+  }
+}
 body {
     margin: 0;
     font-family: Arial;
