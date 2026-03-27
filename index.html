@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Yeni Nesil Uygulama</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+}
+
+/* LOGIN */
+#loginPage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.box {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+input, textarea {
+    width: 90%;
+    padding: 8px;
+    margin: 5px;
+}
+
+/* TOP BAR */
+#topBar {
+    display: none;
+    justify-content: space-between;
+    background: #1e3a8a;
+    color: white;
+    padding: 10px;
+}
+
+.menu button {
+    margin-left: 10px;
+    padding: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+/* SECTIONS */
+.section {
+    display: none;
+    padding: 20px;
+}
+
+.active {
+    display: block;
+}
+
+/* PROFILE */
+#profileMenu {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 50px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+    <div class="box">
+        <h2>Giriş</h2>
+        <input id="ad" placeholder="Ad">
+        <input id="soyad" placeholder="Soyad">
+        <input id="email" placeholder="Email">
+        <input id="sifre" type="password" placeholder="Şifre">
+        <button onclick="giris()">Giriş Yap</button>
+    </div>
+</div>
+
+<!-- TOP BAR -->
+<div id="topBar">
+    <div>📘 App</div>
+
+    <div class="menu">
+        <button onclick="show('kitap')">Kitap</button>
+        <button onclick="show('gunluk')">Günlük</button>
+        <button onclick="toggleProfile()">👤 Profil</button>
+        <button onclick="show('ayarlar')">⚙️ Ayarlar</button>
+        <button onclick="cikis()">🚪 Çıkış</button>
+    </div>
+</div>
+
+<!-- PROFILE MENU -->
+<div id="profileMenu">
+    <p id="profilBilgi"></p>
+    <input id="yeniAd" placeholder="Yeni Ad">
+    <input id="yeniSoyad" placeholder="Yeni Soyad">
+    <button onclick="isimDegistir()">İsim Değiştir</button>
+
+    <input type="file" id="avatar">
+    <button onclick="avatarDegistir()">Avatar Değiştir</button>
+</div>
+
+<!-- KITAP -->
+<div id="kitap" class="section">
+    <h2>Kitap</h2>
+    <input id="kitapInput" placeholder="Kitap adı">
+    <button onclick="kitapEkle()">Ekle</button>
+    <div id="kitapListesi"></div>
+</div>
+
+<!-- GÜNLÜK -->
+<div id="gunluk" class="section">
+    <h2>Günlük</h2>
+    <textarea id="gunlukInput"></textarea>
+    <button onclick="gunlukEkle()">Ekle</button>
+    <div id="gunlukListesi"></div>
+</div>
+
+<!-- AYARLAR -->
+<div id="ayarlar" class="section">
+    <h2>Ayarlar</h2>
+    <p>Profil ve hesap yönetimi buradan yapılır.</p>
+</div>
+
+<script>
+
+let user = {};
+
+// GİRİŞ
+function giris() {
+    user = {
+        ad: ad.value,
+        soyad: soyad.value,
+        email: email.value,
+        sifre: sifre.value
+    };
+
+    localStorage.setItem("user", JSON.stringify(user));
+
+    loginPage.style.display = "none";
+    topBar.style.display = "flex";
+
+    profilGuncelle();
+    show("kitap");
+}
+
+// PROFİL
+function profilGuncelle() {
+    profilBilgi.innerText = user.ad + " " + user.soyad + "\n" + user.email;
+}
+
+function toggleProfile() {
+    profileMenu.style.display = profileMenu.style.display === "block" ? "none" : "block";
+}
+
+// İSİM DEĞİŞTİR
+function isimDegistir() {
+    user.ad = yeniAd.value;
+    user.soyad = yeniSoyad.value;
+    localStorage.setItem("user", JSON.stringify(user));
+    profilGuncelle();
+}
+
+// AVATAR
+function avatarDegistir() {
+    alert("Avatar değişti (simülasyon)");
+}
+
+// ÇIKIŞ
+function cikis() {
+    localStorage.clear();
+    location.reload();
+}
+
+// SAYFA GEÇİŞ
+function show(id) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+// KİTAP
+function kitapEkle() {
+    let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
+    list.push(kitapInput.value);
+    localStorage.setItem("kitaplar", JSON.stringify(list));
+    kitapGoster();
+}
+
+function kitapGoster() {
+    let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
+    kitapListesi.innerHTML = "";
+    list.forEach((k,i)=>{
+        kitapListesi.innerHTML += `<p>${k} <button onclick="kitapSil(${i})">❌</button></p>`;
+    });
+}
+
+function kitapSil(i){
+    let list = JSON.parse(localStorage.getItem("kitaplar"));
+    list.splice(i,1);
+    localStorage.setItem("kitaplar", JSON.stringify(list));
+    kitapGoster();
+}
+
+// GÜNLÜK
+function gunlukEkle() {
+    let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
+    list.push(gunlukInput.value);
+    localStorage.setItem("gunluklar", JSON.stringify(list));
+    gunlukGoster();
+}
+
+function gunlukGoster() {
+    let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
+    gunlukListesi.innerHTML = "";
+    list.forEach((g,i)=>{
+        gunlukListesi.innerHTML += `
+        <p>${g}
+        <button onclick="gunlukSil(${i})">❌</button>
+        <button onclick="gunlukDuzenle(${i})">✏️</button>
+        </p>`;
+    });
+}
+
+function gunlukSil(i){
+    let list = JSON.parse(localStorage.getItem("gunluklar"));
+    list.splice(i,1);
+    localStorage.setItem("gunluklar", JSON.stringify(list));
+    gunlukGoster();
+}
+
+function gunlukDuzenle(i){
+    let list = JSON.parse(localStorage.getItem("gunluklar"));
+    let yeni = prompt("Yeni metin:", list[i]);
+    if(yeni){
+        list[i]=yeni;
+        localStorage.setItem("gunluklar", JSON.stringify(list));
+        gunlukGoster();
+    }
+}
+
+// LOAD
+window.onload = function(){
+    let u = localStorage.getItem("user");
+    if(u){
+        user = JSON.parse(u);
+        loginPage.style.display = "none";
+        topBar.style.display = "flex";
+        profilGuncelle();
+        show("kitap");
+        kitapGoster();
+        gunlukGoster();
+    }
+}
+</script>
+
+</body>
+</html>
