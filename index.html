@@ -1,16 +1,28 @@
 <!DOCTYPE html>
 <html lang="tr">
-<head> 
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yeni Nesil Uygulama</title>
+<title>App Pro</title>
 
 <style>
 body {
     margin: 0;
     font-family: Arial;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-    font-size: 16px;
+    transition: 0.3s;
+}
+
+/* DARK MODE */
+body.dark {
+    background: #111;
+    color: white;
+}
+
+.dark .box,
+.dark .card,
+.dark #profileMenu {
+    background: #1e1e1e;
+    color: white;
 }
 
 /* LOGIN */
@@ -23,43 +35,41 @@ body {
 
 .box {
     background: white;
-    padding: 25px;
-    border-radius: 12px;
+    padding: 20px;
+    border-radius: 10px;
     width: 300px;
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 input, textarea {
     width: 90%;
-    padding: 10px;
+    padding: 8px;
     margin: 5px;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #ccc;
 }
 
-/* TOP BAR */
+/* TOPBAR */
 #topBar {
     display: none;
     justify-content: space-between;
-    background: #1e3a8a;
+    background: #2563eb;
     color: white;
     padding: 10px;
 }
 
-/* BUTTONS */
+/* BUTTON */
 button {
+    padding: 6px 10px;
     border: none;
-    border-radius: 8px;
-    padding: 8px 10px;
-    cursor: pointer;
-    background: #2563eb;
+    border-radius: 6px;
+    background: #1d4ed8;
     color: white;
-    transition: 0.3s;
+    cursor: pointer;
 }
 
 button:hover {
-    background: #1d4ed8;
+    opacity: 0.8;
 }
 
 /* SECTIONS */
@@ -72,13 +82,12 @@ button:hover {
     display: block;
 }
 
-/* CARD STYLE */
+/* CARD */
 .card {
     background: white;
     padding: 10px;
     margin: 10px 0;
-    border-radius: 10px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
 }
 
 /* PROFILE */
@@ -88,26 +97,36 @@ button:hover {
     right: 10px;
     top: 50px;
     background: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 8px;
 }
 
-/* MOBILE */
-@media (max-width: 768px) {
-    button {
-        width: 100%;
-        margin-top: 5px;
-    }
+/* DASHBOARD */
+.dashboard {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
-    input, textarea {
-        width: 100%;
-    }
+.stat {
+    background: #2563eb;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    flex: 1;
+    min-width: 120px;
+}
 
-    #topBar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+/* TOAST */
+#toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: black;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
 }
 </style>
 </head>
@@ -122,39 +141,41 @@ button:hover {
         <input id="soyad" placeholder="Soyad">
         <input id="email" placeholder="Email">
         <input id="sifre" type="password" placeholder="Şifre">
-        <small id="error" style="color:red;"></small>
-        <br><br>
-        <button onclick="giris()">Giriş Yap</button>
+        <button onclick="giris()">Giriş</button>
     </div>
 </div>
 
 <!-- TOP BAR -->
 <div id="topBar">
-    <div>📘 App</div>
-
+    <div>📘 App Pro</div>
     <div>
+        <button onclick="show('dashboard')">Dashboard</button>
         <button onclick="show('kitap')">Kitap</button>
         <button onclick="show('gunluk')">Günlük</button>
-        <button onclick="toggleProfile()">👤 Profil</button>
-        <button onclick="show('ayarlar')">⚙️ Ayarlar</button>
-        <button onclick="cikis()">🚪 Çıkış</button>
+        <button onclick="toggleDark()">🌙</button>
+        <button onclick="toggleProfile()">👤</button>
+        <button onclick="cikis()">Çıkış</button>
     </div>
 </div>
 
 <!-- PROFILE -->
 <div id="profileMenu">
     <p id="profilBilgi"></p>
+</div>
 
-    <input id="yeniAd" placeholder="Yeni Ad">
-    <input id="yeniSoyad" placeholder="Yeni Soyad">
-    <button onclick="isimDegistir()">İsim Değiştir</button>
-
-    <input type="file" id="avatar">
+<!-- DASHBOARD -->
+<div id="dashboard" class="section">
+    <h2>Dashboard</h2>
+    <div class="dashboard">
+        <div class="stat">Kitap: <span id="kitapCount">0</span></div>
+        <div class="stat">Günlük: <span id="gunlukCount">0</span></div>
+    </div>
 </div>
 
 <!-- KITAP -->
 <div id="kitap" class="section">
     <h2>Kitap</h2>
+    <input id="searchKitap" placeholder="Ara..." onkeyup="kitapGoster()">
     <input id="kitapInput" placeholder="Kitap adı">
     <button onclick="kitapEkle()">Ekle</button>
     <div id="kitapListesi"></div>
@@ -163,44 +184,31 @@ button:hover {
 <!-- GÜNLÜK -->
 <div id="gunluk" class="section">
     <h2>Günlük</h2>
+    <input id="searchGunluk" placeholder="Ara..." onkeyup="gunlukGoster()">
     <textarea id="gunlukInput"></textarea>
     <button onclick="gunlukEkle()">Ekle</button>
     <div id="gunlukListesi"></div>
 </div>
 
-<!-- AYARLAR -->
-<div id="ayarlar" class="section">
-    <h2>Ayarlar</h2>
-    <p>Profil ve hesap yönetimi</p>
-</div>
+<div id="toast"></div>
 
 <script>
 
 let user = {};
 
-// EMAIL CHECK
-function isGmail(email){
-    return email.endsWith("@gmail.com");
+// TOAST
+function showToast(msg){
+    toast.innerText = msg;
+    toast.style.display = "block";
+    setTimeout(()=> toast.style.display="none",2000);
 }
 
 // LOGIN
-function giris() {
-
-    if(!isGmail(email.value)){
-        error.innerText = "Email @gmail.com olmalı!";
-        return;
-    }
-
-    if(sifre.value.length < 8){
-        error.innerText = "Şifre en az 8 karakter olmalı!";
-        return;
-    }
-
+function giris(){
     user = {
         ad: ad.value,
         soyad: soyad.value,
-        email: email.value,
-        sifre: sifre.value
+        email: email.value
     };
 
     localStorage.setItem("user", JSON.stringify(user));
@@ -209,111 +217,112 @@ function giris() {
     topBar.style.display = "flex";
 
     profilGuncelle();
-    show("kitap");
+    show("dashboard");
+    updateDashboard();
 }
 
 // PROFILE
-function profilGuncelle() {
-    profilBilgi.innerText = user.ad + " " + user.soyad + "\n" + user.email;
+function profilGuncelle(){
+    profilBilgi.innerText = user.ad + " " + user.soyad;
 }
 
-function toggleProfile() {
-    profileMenu.style.display = profileMenu.style.display === "block" ? "none" : "block";
+function toggleProfile(){
+    profileMenu.style.display =
+        profileMenu.style.display === "block" ? "none" : "block";
 }
 
-function isimDegistir() {
-    user.ad = yeniAd.value;
-    user.soyad = yeniSoyad.value;
-    localStorage.setItem("user", JSON.stringify(user));
-    profilGuncelle();
-}
-
-function cikis() {
-    localStorage.clear();
-    location.reload();
+// DARK MODE
+function toggleDark(){
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark":"light");
 }
 
 // PAGE
-function show(id) {
-    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+function show(id){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 }
 
 // KITAP
-function kitapEkle() {
+function kitapEkle(){
     let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
     list.push(kitapInput.value);
     localStorage.setItem("kitaplar", JSON.stringify(list));
+    kitapInput.value = "";
     kitapGoster();
+    updateDashboard();
+    showToast("Kitap eklendi");
 }
 
-function kitapGoster() {
+function kitapGoster(){
     let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
-    kitapListesi.innerHTML = "";
-    list.forEach((k,i)=>{
-        kitapListesi.innerHTML += `<div class="card">${k} <button onclick="kitapSil(${i})">❌</button></div>`;
-    });
-}
+    let search = searchKitap.value.toLowerCase();
 
-function kitapSil(i){
-    let list = JSON.parse(localStorage.getItem("kitaplar"));
-    list.splice(i,1);
-    localStorage.setItem("kitaplar", JSON.stringify(list));
-    kitapGoster();
+    kitapListesi.innerHTML = "";
+    list
+    .filter(k=>k.toLowerCase().includes(search))
+    .forEach((k,i)=>{
+        kitapListesi.innerHTML += `<div class="card">${k}</div>`;
+    });
 }
 
 // GÜNLÜK
-function gunlukEkle() {
+function gunlukEkle(){
     let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
     list.push(gunlukInput.value);
     localStorage.setItem("gunluklar", JSON.stringify(list));
+    gunlukInput.value = "";
     gunlukGoster();
+    updateDashboard();
+    showToast("Günlük eklendi");
 }
 
-function gunlukGoster() {
+function gunlukGoster(){
     let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
+    let search = searchGunluk.value.toLowerCase();
+
     gunlukListesi.innerHTML = "";
-    list.forEach((g,i)=>{
-        gunlukListesi.innerHTML += `
-        <div class="card">
-        ${g}
-        <br>
-        <button onclick="gunlukSil(${i})">❌</button>
-        <button onclick="gunlukDuzenle(${i})">✏️</button>
-        </div>`;
+    list
+    .filter(g=>g.toLowerCase().includes(search))
+    .forEach(g=>{
+        gunlukListesi.innerHTML += `<div class="card">${g}</div>`;
     });
 }
 
-function gunlukSil(i){
-    let list = JSON.parse(localStorage.getItem("gunluklar"));
-    list.splice(i,1);
-    localStorage.setItem("gunluklar", JSON.stringify(list));
-    gunlukGoster();
-}
+// DASHBOARD
+function updateDashboard(){
+    let kitaplar = JSON.parse(localStorage.getItem("kitaplar")) || [];
+    let gunluklar = JSON.parse(localStorage.getItem("gunluklar")) || [];
 
-function gunlukDuzenle(i){
-    let list = JSON.parse(localStorage.getItem("gunluklar"));
-    let yeni = prompt("Yeni metin:", list[i]);
-    if(yeni){
-        list[i]=yeni;
-        localStorage.setItem("gunluklar", JSON.stringify(list));
-        gunlukGoster();
-    }
+    kitapCount.innerText = kitaplar.length;
+    gunlukCount.innerText = gunluklar.length;
 }
 
 // LOAD
 window.onload = function(){
+
+    // theme
+    let theme = localStorage.getItem("theme");
+    if(theme==="dark") document.body.classList.add("dark");
+
     let u = localStorage.getItem("user");
     if(u){
         user = JSON.parse(u);
         loginPage.style.display = "none";
         topBar.style.display = "flex";
         profilGuncelle();
-        show("kitap");
+        show("dashboard");
+        updateDashboard();
         kitapGoster();
         gunlukGoster();
     }
 }
+
+function cikis(){
+    localStorage.clear();
+    location.reload();
+}
+
 </script>
 
 </body>
