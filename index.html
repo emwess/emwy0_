@@ -76,25 +76,35 @@ async function urunleriGetir(){
     let u = d.data();
 
     html += `
-    <div class="card" data-kategori="${u.kategori}" data-fiyat="${u.fiyat}">
-      <img src="${u.resim}">
+    <div class="card" data-kategori="${u.kategori}">
+      <img src="${u.resim}" onclick="detayAc('${u.ad}','${u.fiyat}','${u.resim}')">
       <h3>${u.ad}</h3>
       <p>${u.fiyat} TL</p>
 
       <button onclick="sepeteEkle('${u.ad}',${u.fiyat})">Sepet</button>
       <button onclick="favoriEkle('${u.ad}')">❤️</button>
       <button onclick="urunSil('${d.id}')">Sil</button>
-
-      <input id="yorum_${u.ad}" placeholder="yorum">
-      <button onclick="yorumEkle('${u.ad}')">Yorum</button>
-      <div id="yorumAlan_${u.ad}"></div>
     </div>`;
-
-    yorumlariGetir(u.ad);
   });
 
   urunler.innerHTML = html;
 }
+
+/* DETAY */
+window.detayAc = function(ad,fiyat,resim){
+  detay.innerHTML = `
+    <div class="modal">
+      <div class="modalContent">
+        <img src="${resim}">
+        <h2>${ad}</h2>
+        <p>${fiyat} TL</p>
+        <button onclick="sepeteEkle('${ad}',${fiyat})">Sepete Ekle</button>
+        <button onclick="kapat()">Kapat</button>
+      </div>
+    </div>`;
+}
+
+window.kapat = ()=>detay.innerHTML="";
 
 /* SEPET */
 window.sepeteEkle = function(ad,fiyat){
@@ -129,44 +139,14 @@ window.siparisVer = async function(){
   alert("Sipariş oluşturuldu");
 }
 
-/* SİPARİŞLER */
-window.siparislerim = async function(){
-  let data = await getDocs(collection(db,"siparisler"));
-  let html="";
-
-  data.forEach(d=>{
-    let s=d.data();
-    html += `<p>Durum: ${s.durum} | Kargo: ${s.kargoNo}</p>`;
-  });
-
-  siparisAlan.innerHTML = html;
-}
-
 /* YORUM */
 window.yorumEkle = async function(ad){
-  let val = document.getElementById("yorum_"+ad).value;
+  let val = document.getElementById("yorum").value;
 
   await addDoc(collection(db,"yorumlar"),{
     urun:ad,
     yorum:val
   });
-
-  yorumlariGetir(ad);
-}
-
-async function yorumlariGetir(ad){
-  let data = await getDocs(collection(db,"yorumlar"));
-  let html="";
-
-  data.forEach(d=>{
-    let y=d.data();
-    if(y.urun===ad){
-      html += `<p>⭐ ${y.yorum}</p>`;
-    }
-  });
-
-  let el=document.getElementById("yorumAlan_"+ad);
-  if(el) el.innerHTML = html;
 }
 
 /* FAVORİ */
@@ -195,43 +175,75 @@ urunleriGetir();
 </script>
 
 <style>
-body{margin:0;font-family:Arial;background:#0f172a;color:white;}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f5f1eb;
+}
+
 .nav{
   display:flex;
   justify-content:space-between;
   padding:15px;
-  background:#020617;
-  align-items:center;
+  background:#3e2f2f;
+  color:white;
 }
-.nav input{
-  padding:8px;
-  border-radius:8px;
-  border:none;
-}
+
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:15px;
+  gap:20px;
   padding:20px;
 }
+
 .card{
-  background:#1e293b;
+  background:#fff;
   padding:10px;
-  border-radius:10px;
+  border-radius:12px;
   text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
-.card img{width:100%;}
+
+.card img{
+  width:100%;
+  cursor:pointer;
+}
+
 button{
   padding:6px;
   margin:3px;
   border:none;
   border-radius:6px;
-  background:#3b82f6;
+  background:#a67c52;
   color:white;
 }
+
 .panel{
-  padding:10px;
-  background:#020617;
+  margin:20px;
+  padding:15px;
+  background:#fff;
+  border-radius:10px;
+}
+
+.modal{
+  position:fixed;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.modalContent{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+}
+.modalContent img{
+  width:200px;
 }
 </style>
 </head>
@@ -242,10 +254,12 @@ button{
   <h2>🛒 Pro Shop</h2>
 
   <input placeholder="Ara..." oninput="ara(this.value)">
+  
   <select onchange="filtre(this.value)">
     <option value="">Tümü</option>
     <option value="telefon">Telefon</option>
     <option value="bilgisayar">Bilgisayar</option>
+    <option value="aksesuar">Aksesuar</option>
   </select>
 
   <div>
@@ -257,16 +271,23 @@ button{
 
 <div id="adminPanel" class="panel" style="display:none">
   <h3>Admin Panel</h3>
+
   <input id="ad" placeholder="Ürün adı">
   <input id="fiyat" placeholder="Fiyat">
   <input id="resim" placeholder="Resim URL">
-  <input id="kategori" placeholder="Kategori">
+
+  <select id="kategori">
+    <option value="telefon">Telefon</option>
+    <option value="bilgisayar">Bilgisayar</option>
+    <option value="aksesuar">Aksesuar</option>
+  </select>
+
   <button onclick="urunEkle()">Ürün Ekle</button>
 </div>
 
 <div id="urunler" class="grid"></div>
 <div id="sepet"></div>
-<div id="siparisAlan"></div>
+<div id="detay"></div>
 
 </body>
 </html>
