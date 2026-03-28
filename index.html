@@ -3,53 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Uygulama</title>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDwTZvXVh4KBViFp_6ELfkNViaaKz-8Umg",
-  authDomain: "emwess-1c215.firebaseapp.com",
-  projectId: "emwess-1c215",
-  storageBucket: "emwess-1c215.firebasestorage.app",
-  messagingSenderId: "1085028708013",
-  appId: "1:1085028708013:web:246bed97c26ce49b072024",
-  measurementId: "G-WCX7QRGWF3"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-window.kayitOl = function(email, sifre){
-  if(!email.endsWith("@gmail.com")){
-    alert("Email @gmail.com olmalı");
-    return;
-  }
-  if(sifre.length < 6){
-    alert("Şifre en az 6 karakter");
-    return;
-  }
-
-  createUserWithEmailAndPassword(auth, email, sifre)
-  .then(()=>{
-    girisYap(email,sifre);
-  })
-  .catch(err=>alert(err.message));
-}
-
-window.girisYap = function(email, sifre){
-  signInWithEmailAndPassword(auth, email, sifre)
-  .then(()=>{
-    document.getElementById("login").style.display="none";
-    document.getElementById("app").style.display="flex";
-  })
-  .catch(err=>alert(err.message));
-}
-</script>
+<title>Pro Shop</title>
 
 <style>
 body{
@@ -93,51 +47,49 @@ button{
   color:white;
 }
 
-/* APP LAYOUT */
+/* APP */
 #app{
   display:none;
-  height:100vh;
 }
 
-/* SIDEBAR */
-.sidebar{
-  width:220px;
+/* HEADER */
+.header{
   background:#020617;
   padding:15px;
+  display:flex;
+  justify-content:space-between;
 }
 
-.sidebar button{
-  display:block;
-  width:100%;
-  margin:10px 0;
-  background:#1e293b;
-}
-
-/* CONTENT */
-.content{
-  flex:1;
+/* PRODUCTS */
+.products{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:15px;
   padding:20px;
 }
 
-.section{
-  display:none;
-}
-
-.active{
-  display:block;
-}
-
-/* CARDS */
-.box{
+.cardP{
   background:#1e293b;
-  padding:20px;
+  padding:15px;
   border-radius:12px;
-  margin-bottom:15px;
-  transition:0.3s;
+  text-align:center;
 }
 
-.box:hover{
-  transform:translateY(-5px);
+.cardP img{
+  width:100%;
+  border-radius:10px;
+}
+
+/* CART */
+.cart{
+  position:fixed;
+  right:0;
+  top:0;
+  width:250px;
+  height:100%;
+  background:#020617;
+  padding:15px;
+  overflow:auto;
 }
 </style>
 </head>
@@ -150,91 +102,99 @@ button{
     <h2>Giriş</h2>
     <input id="email" placeholder="Email">
     <input id="sifre" type="password" placeholder="Şifre">
-    <button onclick="kayitOl(email.value,sifre.value)">Kayıt Ol</button>
-    <button onclick="girisYap(email.value,sifre.value)">Giriş</button>
+    <button onclick="giris()">Giriş</button>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app">
 
-  <div class="sidebar">
-    <h3>📘 Menü</h3>
-    <button onclick="show('kitap')">Kitap</button>
-    <button onclick="show('gunluk')">Günlük</button>
-    <button onclick="show('muzik')">Müzik</button>
+  <div class="header">
+    <h2>🛒 Pro Shop</h2>
+    <button onclick="toggleCart()">Sepet 🧺</button>
   </div>
 
-  <div class="content">
-
-    <div id="kitap" class="section active">
-      <div class="box">
-        <h2>📚 Kitap</h2>
-        <input id="kitapInput">
-        <button onclick="kitapEkle()">Ekle</button>
-        <div id="kitapListesi"></div>
-      </div>
-    </div>
-
-    <div id="gunluk" class="section">
-      <div class="box">
-        <h2>📝 Günlük</h2>
-        <textarea id="gunlukInput"></textarea>
-        <button onclick="gunlukEkle()">Ekle</button>
-        <div id="gunlukListesi"></div>
-      </div>
-    </div>
-
-    <div id="muzik" class="section">
-      <div class="box">
-        <h2>🎵 Müzik</h2>
-        <audio controls>
-          <source src="music.mp3" type="audio/mpeg">
-        </audio>
-      </div>
-    </div>
-
-  </div>
+  <div class="products" id="urunler"></div>
 
 </div>
 
+<!-- CART -->
+<div class="cart" id="cart" style="display:none">
+  <h3>Sepet</h3>
+  <div id="cartList"></div>
+  <h4 id="total"></h4>
+  <button onclick="siparisVer()">Sipariş Ver</button>
+</div>
+
 <script>
-function show(id){
-  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+
+/* LOGIN (basit) */
+function giris(){
+  if(email.value && sifre.value){
+    login.style.display="none";
+    app.style.display="block";
+  }
 }
 
-/* KITAP */
-function kitapEkle(){
-  let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
-  list.push(kitapInput.value);
-  localStorage.setItem("kitaplar",JSON.stringify(list));
-  kitapGoster();
-}
+/* ÜRÜNLER */
+let urunler = [
+  {ad:"Kulaklık", fiyat:500, img:"https://picsum.photos/200?1"},
+  {ad:"Telefon", fiyat:15000, img:"https://picsum.photos/200?2"},
+  {ad:"Laptop", fiyat:30000, img:"https://picsum.photos/200?3"},
+  {ad:"Klavye", fiyat:1000, img:"https://picsum.photos/200?4"}
+];
 
-function kitapGoster(){
-  let list = JSON.parse(localStorage.getItem("kitaplar")) || [];
-  kitapListesi.innerHTML="";
-  list.forEach(k=>{
-    kitapListesi.innerHTML+=`<p>📖 ${k}</p>`;
+let sepet = JSON.parse(localStorage.getItem("sepet")) || [];
+
+/* ÜRÜNLERİ GÖSTER */
+function urunleriGoster(){
+  urunler.forEach((u,i)=>{
+    urunlerDiv.innerHTML += `
+    <div class="cardP">
+      <img src="${u.img}">
+      <h3>${u.ad}</h3>
+      <p>${u.fiyat} TL</p>
+      <button onclick="sepeteEkle(${i})">Sepete Ekle</button>
+    </div>`;
   });
 }
 
-/* GUNLUK */
-function gunlukEkle(){
-  let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
-  list.push(gunlukInput.value);
-  localStorage.setItem("gunluklar",JSON.stringify(list));
-  gunlukGoster();
+/* SEPET */
+function sepeteEkle(i){
+  sepet.push(urunler[i]);
+  localStorage.setItem("sepet",JSON.stringify(sepet));
+  alert("Sepete eklendi");
 }
 
-function gunlukGoster(){
-  let list = JSON.parse(localStorage.getItem("gunluklar")) || [];
-  gunlukListesi.innerHTML="";
-  list.forEach(g=>{
-    gunlukListesi.innerHTML+=`<p>📝 ${g}</p>`;
-  });
+/* CART GÖSTER */
+function toggleCart(){
+  cart.style.display = cart.style.display=="none" ? "block":"none";
+  cartGoster();
 }
+
+function cartGoster(){
+  cartList.innerHTML="";
+  let toplam=0;
+
+  sepet.forEach(u=>{
+    toplam += u.fiyat;
+    cartList.innerHTML += `<p>${u.ad} - ${u.fiyat} TL</p>`;
+  });
+
+  total.innerText = "Toplam: " + toplam + " TL";
+}
+
+/* SİPARİŞ */
+function siparisVer(){
+  alert("Sipariş verildi 🎉");
+  sepet=[];
+  localStorage.removeItem("sepet");
+  cartGoster();
+}
+
+/* INIT */
+urunleriGoster();
+
 </script>
 
 </body>
