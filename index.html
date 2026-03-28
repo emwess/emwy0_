@@ -2,103 +2,100 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Shop</title>
+<title>Mini Shop</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f172a;
-  color:white;
-}
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "API_KEY",
+  authDomain: "DOMAIN",
+  projectId: "PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 /* LOGIN */
-#login{
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+window.giris = async function(){
+  await signInWithEmailAndPassword(auth, email.value, sifre.value);
+  login.style.display="none";
+  appDiv.style.display="block";
+  urunleriGetir();
 }
 
-.card{
-  background:#1e293b;
-  padding:25px;
-  border-radius:12px;
-  width:300px;
-  text-align:center;
+/* ÜRÜN EKLE (SATICI) */
+window.urunEkle = async function(){
+  await addDoc(collection(db,"urunler"),{
+    ad: urunAd.value,
+    fiyat: Number(urunFiyat.value),
+    resim: urunResim.value
+  });
+  alert("Ürün eklendi");
+  urunleriGetir();
 }
 
-input{
-  width:90%;
-  padding:10px;
-  margin:5px;
-  border-radius:8px;
-  border:none;
+/* ÜRÜNLERİ ÇEK */
+async function urunleriGetir(){
+  let html="";
+  const data = await getDocs(collection(db,"urunler"));
+  data.forEach(doc=>{
+    let u = doc.data();
+    html += `
+    <div class="card">
+      <img src="${u.resim}">
+      <h3>${u.ad}</h3>
+      <p>${u.fiyat} TL</p>
+      <button onclick="sepeteEkle('${u.ad}',${u.fiyat})">Sepet</button>
+    </div>`;
+  });
+  urunler.innerHTML = html;
 }
 
-button{
-  padding:10px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  background:#3b82f6;
-  color:white;
+/* SEPET */
+window.sepeteEkle = function(ad,fiyat){
+  let s = JSON.parse(localStorage.getItem("sepet")) || [];
+  s.push({ad,fiyat});
+  localStorage.setItem("sepet",JSON.stringify(s));
+  alert("Eklendi");
 }
 
-/* APP */
-#app{
-  display:none;
-}
+window.sepetGoster = function(){
+  let s = JSON.parse(localStorage.getItem("sepet")) || [];
+  let html="";
+  let t=0;
 
-/* HEADER */
-.header{
-  background:#020617;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-}
+  s.forEach(i=>{
+    t+=i.fiyat;
+    html+=`<p>${i.ad} - ${i.fiyat}</p>`;
+  });
 
-/* PRODUCTS */
-.products{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:15px;
-  padding:20px;
+  sepet.innerHTML = html + "<h3>Toplam: "+t+"</h3>";
 }
+</script>
 
-.cardP{
-  background:#1e293b;
-  padding:15px;
-  border-radius:12px;
-  text-align:center;
-}
-
-.cardP img{
-  width:100%;
-  border-radius:10px;
-}
-
-/* CART */
-.cart{
-  position:fixed;
-  right:0;
-  top:0;
-  width:250px;
-  height:100%;
-  background:#020617;
-  padding:15px;
-  overflow:auto;
-}
+<style>
+body{background:#0f172a;color:white;font-family:Arial;margin:0;}
+#login{height:100vh;display:flex;justify-content:center;align-items:center;}
+input{margin:5px;padding:10px;border-radius:8px;border:none;}
+button{padding:10px;margin:5px;border:none;border-radius:8px;background:#3b82f6;color:white;}
+#appDiv{display:none;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;padding:20px;}
+.card{background:#1e293b;padding:10px;border-radius:10px;text-align:center;}
+.card img{width:100%;}
+.panel{background:#020617;padding:10px;}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="login">
-  <div class="card">
+  <div>
     <h2>Giriş</h2>
     <input id="email" placeholder="Email">
     <input id="sifre" type="password" placeholder="Şifre">
@@ -106,96 +103,29 @@ button{
   </div>
 </div>
 
-<!-- APP -->
-<div id="app">
+<div id="appDiv">
 
-  <div class="header">
-    <h2>🛒 Pro Shop</h2>
-    <button onclick="toggleCart()">Sepet 🧺</button>
+  <div class="panel">
+    <h3>🛒 Mini Trendyol</h3>
+    <button onclick="sepetGoster()">Sepet</button>
   </div>
 
-  <div class="products" id="urunler"></div>
+  <!-- SATIŞ PANELİ -->
+  <div class="panel">
+    <h3>Ürün Ekle (Satıcı)</h3>
+    <input id="urunAd" placeholder="Ürün adı">
+    <input id="urunFiyat" placeholder="Fiyat">
+    <input id="urunResim" placeholder="Resim link">
+    <button onclick="urunEkle()">Ekle</button>
+  </div>
+
+  <!-- ÜRÜNLER -->
+  <div id="urunler" class="grid"></div>
+
+  <!-- SEPET -->
+  <div id="sepet"></div>
 
 </div>
-
-<!-- CART -->
-<div class="cart" id="cart" style="display:none">
-  <h3>Sepet</h3>
-  <div id="cartList"></div>
-  <h4 id="total"></h4>
-  <button onclick="siparisVer()">Sipariş Ver</button>
-</div>
-
-<script>
-
-/* LOGIN (basit) */
-function giris(){
-  if(email.value && sifre.value){
-    login.style.display="none";
-    app.style.display="block";
-  }
-}
-
-/* ÜRÜNLER */
-let urunler = [
-  {ad:"Kulaklık", fiyat:500, img:"https://picsum.photos/200?1"},
-  {ad:"Telefon", fiyat:15000, img:"https://picsum.photos/200?2"},
-  {ad:"Laptop", fiyat:30000, img:"https://picsum.photos/200?3"},
-  {ad:"Klavye", fiyat:1000, img:"https://picsum.photos/200?4"}
-];
-
-let sepet = JSON.parse(localStorage.getItem("sepet")) || [];
-
-/* ÜRÜNLERİ GÖSTER */
-function urunleriGoster(){
-  urunler.forEach((u,i)=>{
-    urunlerDiv.innerHTML += `
-    <div class="cardP">
-      <img src="${u.img}">
-      <h3>${u.ad}</h3>
-      <p>${u.fiyat} TL</p>
-      <button onclick="sepeteEkle(${i})">Sepete Ekle</button>
-    </div>`;
-  });
-}
-
-/* SEPET */
-function sepeteEkle(i){
-  sepet.push(urunler[i]);
-  localStorage.setItem("sepet",JSON.stringify(sepet));
-  alert("Sepete eklendi");
-}
-
-/* CART GÖSTER */
-function toggleCart(){
-  cart.style.display = cart.style.display=="none" ? "block":"none";
-  cartGoster();
-}
-
-function cartGoster(){
-  cartList.innerHTML="";
-  let toplam=0;
-
-  sepet.forEach(u=>{
-    toplam += u.fiyat;
-    cartList.innerHTML += `<p>${u.ad} - ${u.fiyat} TL</p>`;
-  });
-
-  total.innerText = "Toplam: " + toplam + " TL";
-}
-
-/* SİPARİŞ */
-function siparisVer(){
-  alert("Sipariş verildi 🎉");
-  sepet=[];
-  localStorage.removeItem("sepet");
-  cartGoster();
-}
-
-/* INIT */
-urunleriGoster();
-
-</script>
 
 </body>
 </html>
